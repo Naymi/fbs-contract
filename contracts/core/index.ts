@@ -102,28 +102,25 @@ export abstract class SubContract<D extends object = any> {
     }
 }
 
-class ErrorResponseDto {
+export class ErrorResponseDto {
     @IsString()
     message!: string;
 }
 
-export abstract class ResponseContract<Dto extends object> {
-    abstract success: NContract<Dto>;
-    abstract error: NContract<Dto>;
+export class ResponseContract<Dto extends object> {
+    constructor(public success: NContract<Dto>, public error: NContract<Dto>) {}
 }
 
-export class ErrorResponseContract extends SubContract<ErrorResponseDto> {
+export class ErrorResponseCodec implements FlatBufCodec<ErrorResponseDto> {
     Dto = ErrorResponseDto;
 
     constructor(
-        public Response: any,
-        public ErrorResponse: any,
-        public Body: any
-    ) {
-        super();
-    }
+        private readonly Response: any,
+        private readonly ErrorResponse: any,
+        private readonly Body: any
+    ) {}
 
-    decodeFB(buf: flatbuffers.ByteBuffer) {
+    decode(buf: flatbuffers.ByteBuffer) {
         const data = this.Response.getRoot(buf);
         const body = data.body(this.ErrorResponse())!;
         return {
@@ -131,7 +128,7 @@ export class ErrorResponseContract extends SubContract<ErrorResponseDto> {
         };
     }
 
-    encodeFB(builder: flatbuffers.Builder, data: ErrorResponseDto): number {
+    encode(builder: flatbuffers.Builder, data: ErrorResponseDto): number {
         return this.Response.create(
             builder,
             this.Body.ErrorResponse,
@@ -139,6 +136,15 @@ export class ErrorResponseContract extends SubContract<ErrorResponseDto> {
                 builder,
                 builder.createString(data.message)
             )
+        );
+    }
+}
+
+export class ErrorResponseContractCreator {
+    static create(response: any, errorResponse: any, body: any) {
+        return NContractCreator.create(
+            new ErrorResponseCodec(response, errorResponse, body),
+            ErrorResponseCodec
         );
     }
 }

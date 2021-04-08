@@ -6,7 +6,7 @@ import { PlayerController } from "./controllers/Player";
 globalThis.flatbuffers = flatbuffers;
 const main = async () => {
     const a = await PlayerController.hasState({ state: 1 });
-    console.log(a);
+    console.log(a.result);
 };
 
 main();

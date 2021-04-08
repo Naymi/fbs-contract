@@ -2,12 +2,12 @@ import { IsIn } from "class-validator";
 import { NContractCreator } from "../../core";
 import { RPC as fb } from "./contract_generated";
 
-export class RequestDto {
+export class PlayerHasStateRequestDto {
     @IsIn(Object.values(fb.PlayerState))
     state!: fb.PlayerState;
 }
 
-export const playerHasStateRequestContract = NContractCreator.create<RequestDto>(
+export const playerHasStateRequestContract = NContractCreator.create<PlayerHasStateRequestDto>(
     {
         decode(buf: flatbuffers.ByteBuffer) {
             const data = fb.Request.getRoot(buf);
@@ -16,9 +16,12 @@ export const playerHasStateRequestContract = NContractCreator.create<RequestDto>
             };
         },
 
-        encode(builder: flatbuffers.Builder, data: RequestDto): number {
+        encode(
+            builder: flatbuffers.Builder,
+            data: PlayerHasStateRequestDto
+        ): number {
             return fb.Request.create(builder, data.state);
         },
     },
-    RequestDto
+    PlayerHasStateRequestDto
 );

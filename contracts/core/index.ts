@@ -12,9 +12,9 @@ interface IValidationContract<Dto> {
     validate: (data: any) => Promise<Dto>;
 }
 
-interface FlatBufCodec<D extends object> {
-    decode: (buf: flatbuffers.ByteBuffer) => D;
-    encode: (builder: flatbuffers.Builder, data: D) => number;
+interface FlatBufCodec<Dto extends object> {
+    decode: (buf: flatbuffers.ByteBuffer) => Dto;
+    encode: (builder: flatbuffers.Builder, data: Dto) => number;
 }
 
 export class TransportContract<Dto extends object>
@@ -61,7 +61,10 @@ export class NContract<Dto extends object>
 }
 
 export class NContractCreator {
-    static create<D extends object>(codec: FlatBufCodec<D>, Dto: ClassType<D>) {
+    static create<Dto extends object>(
+        codec: FlatBufCodec<Dto>,
+        Dto: ClassType<Dto>
+    ) {
         return new NContract(
             new TransportContract(codec),
             new ValidationContract(Dto)
@@ -69,22 +72,23 @@ export class NContractCreator {
     }
 }
 
-export class ErrorResponseDto {
+export class ErrRsDto {
     @IsString()
     message!: string;
 }
 
 export class ResponseContract<
-    Dto extends object,
-    ErrorDto extends object = ErrorResponseDto
+    RqDto extends object,
+    ErRsDto extends object = ErrRsDto
 > {
     constructor(
-        public success: NContract<Dto>,
-        public error: NContract<ErrorDto>
+        public success: NContract<RqDto>,
+        public error: NContract<ErRsDto>
     ) {}
 }
 
-export class ErrorResponseCodec implements FlatBufCodec<ErrorResponseDto> {
+export class ErrorResponseCodec<GResponse, GErrorResponse, GBody>
+    implements FlatBufCodec<ErrRsDto> {
     constructor(
         private readonly Response: any,
         private readonly ErrorResponse: any,
@@ -99,7 +103,7 @@ export class ErrorResponseCodec implements FlatBufCodec<ErrorResponseDto> {
         };
     }
 
-    encode(builder: flatbuffers.Builder, data: ErrorResponseDto): number {
+    encode(builder: flatbuffers.Builder, data: ErrRsDto): number {
         return this.Response.create(
             builder,
             this.Body.ErrorResponse,
@@ -112,22 +116,26 @@ export class ErrorResponseCodec implements FlatBufCodec<ErrorResponseDto> {
 }
 
 export class ErrorResponseContractCreator {
-    static create(response: any, errorResponse: any, body: any) {
+    static create<GResponse, GErrorResponse, GBody>(
+        response: GResponse,
+        errorResponse: GErrorResponse,
+        body: GBody
+    ) {
         return NContractCreator.create(
             new ErrorResponseCodec(response, errorResponse, body),
-            ErrorResponseDto
+            ErrRsDto
         );
     }
 }
 
 export class ResponseContractCreator {
-    static create<SuccessDto extends object>(
-        successResponseContract: NContract<SuccessDto>,
-        response: any,
-        errorResponse: any,
-        body: any
+    static create<RsDto extends object, GResponse, GErrorResponse, GBody>(
+        successResponseContract: NContract<RsDto>,
+        response: GResponse,
+        errorResponse: GErrorResponse,
+        body: GBody
     ) {
-        return new ResponseContract<SuccessDto>(
+        return new ResponseContract<RsDto>(
             successResponseContract,
             ErrorResponseContractCreator.create(response, errorResponse, body)
         );
@@ -135,24 +143,31 @@ export class ResponseContractCreator {
 }
 
 export class ContractCreator {
-    static create<SuccessResponseDto extends object, RequestDto extends object>(
+    static create<
+        RqDto extends object,
+        RsDto extends object,
+        GResponse,
+        GBody,
+        GErrorResponse,
+        GSuccessResponse
+    >(
         eventName: string,
-        requestContract: NContract<RequestDto>,
-        successResponseContract: NContract<SuccessResponseDto>,
-        Response: any,
-        Body: any,
-        ErrorResponse: any,
-        SuccessResponse: any
+        requestContract: NContract<RqDto>,
+        successResponseContract: NContract<RsDto>,
+        Response: GResponse,
+        Body: GBody,
+        ErrorResponse: GErrorResponse,
+        SuccessResponse: GSuccessResponse
     ) {
-        return new Contract<SuccessResponseDto, RequestDto>(
+        return new Contract<RqDto, RsDto>(
             eventName,
             requestContract,
-            ResponseContractCreator.create<SuccessResponseDto>(
-                successResponseContract,
-                Response,
-                ErrorResponse,
-                Body
-            ),
+            ResponseContractCreator.create<
+                RsDto,
+                GResponse,
+                GErrorResponse,
+                GBody
+            >(successResponseContract, Response, ErrorResponse, Body),
             Response,
             Body,
             ErrorResponse,
@@ -161,14 +176,11 @@ export class ContractCreator {
     }
 }
 
-export class Contract<
-    SuccessResponseDto extends object,
-    RequestDto extends object
-> {
+export class Contract<RqDto extends object, RsDto extends object> {
     constructor(
         public eventName: string,
-        public requestContract: NContract<RequestDto>,
-        public responseContract: ResponseContract<SuccessResponseDto>,
+        public requestContract: NContract<RqDto>,
+        public responseContract: ResponseContract<RsDto>,
         public Response: any,
         public Body: any,
         public ErrorResponse: any,
@@ -190,28 +202,28 @@ export class Contract<
         return this.responseContract.success.encode(data);
     }
 
-    decodeErrorResponse(data: any) {
-        return this.responseContract.error.decode(data);
+    decodeErrorResponse(raw: Uint8Array): Promise<ErrRsDto> {
+        return this.responseContract.error.decode(raw);
+    }
+    async decodeSuccessResponse(raw: Uint8Array): Promise<RsDto> {
+        return await this.responseContract.success.decode(raw);
     }
 
-    decodeResponse(buf: Uint8Array) {
+    async decodeResponse(buf: Uint8Array): Promise<RsDto> {
         const byteBuilder = new flatbuffers.ByteBuffer(buf);
         const data = this.Response.getRoot(byteBuilder);
         const bodyType = data.bodyType();
         if (bodyType === this.Body.ErrorResponse) {
-            const errorBody = data.body(new this.ErrorResponse())!;
-            throw new Error(errorBody.message()!);
+            const errorBody = await this.decodeErrorResponse(buf);
+            throw new Error(errorBody.message);
         }
-        const body = data.body(new this.SuccessResponse())!;
-        return {
-            result: body.result(),
-        };
+        return await this.decodeSuccessResponse(buf);
     }
 }
 
 export class ContractService {
-    static async call<ResponseDto extends object, RqDto extends object>(
-        contract: Contract<ResponseDto, RqDto>,
+    static async call<RqDto extends object, RsDto extends object>(
+        contract: Contract<RqDto, RsDto>,
         data: RqDto
     ) {
         const payload = await contract.encodeRequest(data);
@@ -239,8 +251,8 @@ export class ContractService {
 }
 
 export class ContractServiceDecorator {
-    static handler<ResponseDto extends object, RqDto extends object>(
-        contract: Contract<ResponseDto, RqDto>
+    static handler<RqDto extends object, RsDto extends object>(
+        contract: Contract<RsDto, RqDto>
     ): (
         target: any,
         propertyKey: string,

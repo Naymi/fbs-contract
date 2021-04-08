@@ -2,7 +2,7 @@ import { IsBoolean } from "class-validator";
 import { NContractCreator } from "../../core";
 import { RPC as fb } from "./contract_generated";
 
-export class SuccessResponseDto {
+export class PlayerResponseDto {
     @IsBoolean()
     result!: boolean;
 }
@@ -24,5 +24,5 @@ export const successResponseContract = NContractCreator.create(
             );
         },
     },
-    SuccessResponseDto
+    PlayerResponseDto
 );

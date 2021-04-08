@@ -1,12 +1,19 @@
 import { PlayerMethods } from "../playerMethods";
 import { ContractCreator } from "../../core";
-import { successResponseContract, SuccessResponseDto } from "./response";
-import { playerHasStateRequestContract, RequestDto } from "./request";
+import { successResponseContract, PlayerResponseDto } from "./response";
+import {
+    playerHasStateRequestContract,
+    PlayerHasStateRequestDto,
+} from "./request";
 import { RPC } from "./contract_generated";
 
 export const playerHasStateContract = ContractCreator.create<
-    SuccessResponseDto,
-    RequestDto
+    PlayerHasStateRequestDto,
+    PlayerResponseDto,
+    typeof RPC.Response,
+    typeof RPC.Body,
+    typeof RPC.ErrorResponse,
+    typeof RPC.SuccessResponse
 >(
     PlayerMethods.hasState,
     playerHasStateRequestContract,

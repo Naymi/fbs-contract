@@ -3,6 +3,76 @@ import { ClassType, transformAndValidate } from "class-transformer-validator";
 import { IsString } from "class-validator";
 import { RPC } from "../../rpc";
 
+interface NewContract<D, R> {
+    decode: (raw: R) => Promise<D>;
+    encode: (data: D) => Promise<R>;
+}
+
+interface IValidationContract<Dto> {
+    validate: (data: any) => Promise<Dto>;
+}
+
+interface TContract<D extends object, R> {
+    decode: (raw: R) => Promise<D>;
+    encode: (data: D) => Promise<R>;
+}
+
+interface FlatBufCodec<D extends object = any> {
+    decode: (buf: flatbuffers.ByteBuffer) => D;
+    encode: (builder: flatbuffers.Builder, data: D) => number;
+}
+
+export class TransportContract<Dto extends object>
+    implements TContract<Dto, Uint8Array> {
+    constructor(private readonly codec: FlatBufCodec) {}
+    async decode(buf: Uint8Array) {
+        const b = new flatbuffers.ByteBuffer(buf);
+        const data = this.codec.decode(b);
+        return data;
+    }
+
+    async encode(data: Dto): Promise<Uint8Array> {
+        const builder = new flatbuffers.Builder();
+        const offset = this.codec.encode(builder, data);
+        builder.finish(offset);
+        return builder.asUint8Array();
+    }
+}
+
+export class ValidationContract<Dto extends object>
+    implements IValidationContract<Dto> {
+    constructor(private readonly Dto: ClassType<Dto>) {}
+    async validate(data: any): Promise<Dto> {
+        return (await transformAndValidate(this.Dto, data)) as Dto;
+    }
+}
+
+class NContract<Dto extends object> implements NewContract<Dto, Uint8Array> {
+    constructor(
+        private transportContract: TransportContract<Dto>,
+        private validationContract: ValidationContract<Dto>
+    ) {}
+    decode: (raw: Uint8Array) => Promise<Dto> = async (raw) => {
+        const data = this.transportContract.decode(raw);
+        const validateData = await this.validationContract.validate(data);
+        return validateData;
+    };
+    encode: (data: Dto) => Promise<Uint8Array> = async (data) => {
+        const validateData = await this.validationContract.validate(data);
+        const raw = this.transportContract.encode(validateData);
+        return raw;
+    };
+}
+
+class NContractCreator {
+    static create(codec: FlatBufCodec, Dto: ClassType<object>) {
+        return new NContract(
+            new TransportContract(codec),
+            new ValidationContract(Dto)
+        );
+    }
+}
+
 export abstract class SubContract<D extends object = any> {
     abstract Dto: ClassType<D>;
     /**

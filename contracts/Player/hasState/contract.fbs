@@ -1,0 +1,30 @@
+include "../../core.fbs";
+namespace RPC;
+
+enum PlayerState: ubyte (bit_flags) {
+  Knocked,
+  Handcuffed,
+  Escort,
+  Chained
+}
+
+table Player {
+  state: PlayerState;
+}
+
+table Request {
+  state: PlayerState;
+}
+
+table SuccessResponse {
+  result: bool;
+}
+
+union Body{
+  SuccessResponse,
+  ErrorResponse
+}
+
+table Response {
+  body: Body;
+}

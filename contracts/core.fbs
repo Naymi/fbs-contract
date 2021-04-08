@@ -1,0 +1,7 @@
+namespace RPC;
+
+table ErrorResponse {
+  message: string;
+}
+
+root_type ErrorResponse;

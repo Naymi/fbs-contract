@@ -216,11 +216,6 @@ class ContractService {
                     contractHandler
                 );
                 const result = await contract.encodeSuccessResponse(response);
-                console.log("RPC handler: ", response, result);
-                console.log(
-                    "decode response",
-                    await contract.decodeResponse(result)
-                );
                 return result;
             } catch (error) {
                 return contract.encodeErrorResponse({ message: error.message });
@@ -246,7 +241,7 @@ class ContractServiceDecorator {
 export class PlayerDispatcher {
     @ContractServiceDecorator.handler(playerHasStateContract)
     hasState(payload: RequestDto) {
-        if (1) {
+        if (0) {
             throw new Error("hasState error");
         }
         return { result: true };

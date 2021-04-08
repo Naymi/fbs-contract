@@ -1,25 +1,16 @@
-import "reflect-metadata";
 import { PlayerMethods } from "../playerMethods";
-import {
-    Contract,
-    ErrorResponseContractCreator,
-    ResponseContract,
-} from "../../core";
-import { successResponseContract } from "./response";
-import { playerHasStateRequestContract } from "./request";
+import { ContractCreator } from "../../core";
+import { successResponseContract, SuccessResponseDto } from "./response";
+import { playerHasStateRequestContract, RequestDto } from "./request";
 import { RPC } from "./contract_generated";
 
-export const playerHasStateContract = new Contract(
+export const playerHasStateContract = ContractCreator.create<
+    SuccessResponseDto,
+    RequestDto
+>(
     PlayerMethods.hasState,
     playerHasStateRequestContract,
-    new ResponseContract(
-        successResponseContract,
-        ErrorResponseContractCreator.create(
-            RPC.Response,
-            RPC.ErrorResponse,
-            RPC.Body
-        )
-    ),
+    successResponseContract,
     RPC.Response,
     RPC.Body,
     RPC.ErrorResponse,

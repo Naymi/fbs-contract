@@ -12,19 +12,14 @@ interface IValidationContract<Dto> {
     validate: (data: any) => Promise<Dto>;
 }
 
-interface TContract<D extends object, R> {
-    decode: (raw: R) => Promise<D>;
-    encode: (data: D) => Promise<R>;
-}
-
-interface FlatBufCodec<D extends object = any> {
+interface FlatBufCodec<D extends object> {
     decode: (buf: flatbuffers.ByteBuffer) => D;
     encode: (builder: flatbuffers.Builder, data: D) => number;
 }
 
 export class TransportContract<Dto extends object>
-    implements TContract<Dto, Uint8Array> {
-    constructor(private readonly codec: FlatBufCodec) {}
+    implements NewContract<Dto, Uint8Array> {
+    constructor(private readonly codec: FlatBufCodec<Dto>) {}
     async decode(buf: Uint8Array) {
         const b = new flatbuffers.ByteBuffer(buf);
         const data = this.codec.decode(b);
@@ -66,39 +61,11 @@ export class NContract<Dto extends object>
 }
 
 export class NContractCreator {
-    static create(codec: FlatBufCodec, Dto: ClassType<object>) {
+    static create<D extends object>(codec: FlatBufCodec<D>, Dto: ClassType<D>) {
         return new NContract(
             new TransportContract(codec),
             new ValidationContract(Dto)
         );
-    }
-}
-
-export abstract class SubContract<D extends object = any> {
-    abstract Dto: ClassType<D>;
-    /**
-     * @abstract
-     * @param {flatbuffers.ByteBuffer} buf
-     * @return {*}  {*} Должен вернуть инстанс от сгенерированного fb кода, как это описать непонятно так как иерархии там нет
-     * @memberof Contract
-     */
-    abstract decodeFB(buf: flatbuffers.ByteBuffer): D;
-    abstract encodeFB(builder: flatbuffers.Builder, data: D): number;
-    private async validate(data: D): Promise<D> {
-        return await transformAndValidate(this.Dto, data);
-    }
-    async decode(buf: Uint8Array) {
-        const b = new flatbuffers.ByteBuffer(buf);
-        const data = this.decodeFB(b);
-        return this.validate(data);
-    }
-
-    async encode(data: D): Promise<Uint8Array> {
-        const pl = await this.validate(data);
-        const builder = new flatbuffers.Builder();
-        const offset = this.encodeFB(builder, pl);
-        builder.finish(offset);
-        return builder.asUint8Array();
     }
 }
 
@@ -107,13 +74,17 @@ export class ErrorResponseDto {
     message!: string;
 }
 
-export class ResponseContract<Dto extends object> {
-    constructor(public success: NContract<Dto>, public error: NContract<Dto>) {}
+export class ResponseContract<
+    Dto extends object,
+    ErrorDto extends object = ErrorResponseDto
+> {
+    constructor(
+        public success: NContract<Dto>,
+        public error: NContract<ErrorDto>
+    ) {}
 }
 
 export class ErrorResponseCodec implements FlatBufCodec<ErrorResponseDto> {
-    Dto = ErrorResponseDto;
-
     constructor(
         private readonly Response: any,
         private readonly ErrorResponse: any,
@@ -144,16 +115,60 @@ export class ErrorResponseContractCreator {
     static create(response: any, errorResponse: any, body: any) {
         return NContractCreator.create(
             new ErrorResponseCodec(response, errorResponse, body),
-            ErrorResponseCodec
+            ErrorResponseDto
         );
     }
 }
 
-export class Contract<Dto extends object> {
+export class ResponseContractCreator {
+    static create<SuccessDto extends object>(
+        successResponseContract: NContract<SuccessDto>,
+        response: any,
+        errorResponse: any,
+        body: any
+    ) {
+        return new ResponseContract<SuccessDto>(
+            successResponseContract,
+            ErrorResponseContractCreator.create(response, errorResponse, body)
+        );
+    }
+}
+
+export class ContractCreator {
+    static create<SuccessResponseDto extends object, RequestDto extends object>(
+        eventName: string,
+        requestContract: NContract<RequestDto>,
+        successResponseContract: NContract<SuccessResponseDto>,
+        Response: any,
+        Body: any,
+        ErrorResponse: any,
+        SuccessResponse: any
+    ) {
+        return new Contract<SuccessResponseDto, RequestDto>(
+            eventName,
+            requestContract,
+            ResponseContractCreator.create<SuccessResponseDto>(
+                successResponseContract,
+                Response,
+                ErrorResponse,
+                Body
+            ),
+            Response,
+            Body,
+            ErrorResponse,
+            SuccessResponse
+        );
+    }
+}
+
+export class Contract<
+    SuccessResponseDto extends object,
+    RequestDto extends object
+> {
     constructor(
         public eventName: string,
-        public requestContract: NContract<Dto>,
-        public responseContract: ResponseContract<Dto>,
+        public requestContract: NContract<RequestDto>,
+        public responseContract: ResponseContract<SuccessResponseDto>,
         public Response: any,
         public Body: any,
         public ErrorResponse: any,
@@ -195,13 +210,16 @@ export class Contract<Dto extends object> {
 }
 
 export class ContractService {
-    static async call<Dto extends object>(contract: Contract<Dto>, data: any) {
+    static async call<ResponseDto extends object, RqDto extends object>(
+        contract: Contract<ResponseDto, RqDto>,
+        data: RqDto
+    ) {
         const payload = await contract.encodeRequest(data);
         const response = await RPC.call(contract.eventName, payload);
         return contract.decodeResponse(response);
     }
-    static handler<Dto extends object>(
-        contract: Contract<Dto>,
+    static handler<ResponseDto extends object, RqDto extends object>(
+        contract: Contract<ResponseDto, RqDto>,
         contractHandler: (...a: any) => any
     ) {
         RPC.handler(contract.eventName, async function (data: any) {
@@ -221,8 +239,8 @@ export class ContractService {
 }
 
 export class ContractServiceDecorator {
-    static handler<Dto extends object>(
-        contract: Contract<Dto>
+    static handler<ResponseDto extends object, RqDto extends object>(
+        contract: Contract<ResponseDto, RqDto>
     ): (
         target: any,
         propertyKey: string,

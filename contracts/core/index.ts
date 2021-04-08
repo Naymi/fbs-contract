@@ -47,7 +47,8 @@ export class ValidationContract<Dto extends object>
     }
 }
 
-class NContract<Dto extends object> implements NewContract<Dto, Uint8Array> {
+export class NContract<Dto extends object>
+    implements NewContract<Dto, Uint8Array> {
     constructor(
         private transportContract: TransportContract<Dto>,
         private validationContract: ValidationContract<Dto>
@@ -64,7 +65,7 @@ class NContract<Dto extends object> implements NewContract<Dto, Uint8Array> {
     };
 }
 
-class NContractCreator {
+export class NContractCreator {
     static create(codec: FlatBufCodec, Dto: ClassType<object>) {
         return new NContract(
             new TransportContract(codec),
@@ -106,9 +107,9 @@ class ErrorResponseDto {
     message!: string;
 }
 
-export abstract class ResponseContract {
-    abstract success: SubContract;
-    abstract error: SubContract;
+export abstract class ResponseContract<Dto extends object> {
+    abstract success: NContract<Dto>;
+    abstract error: NContract<Dto>;
 }
 
 export class ErrorResponseContract extends SubContract<ErrorResponseDto> {
@@ -142,11 +143,11 @@ export class ErrorResponseContract extends SubContract<ErrorResponseDto> {
     }
 }
 
-export class Contract {
+export class Contract<Dto extends object> {
     constructor(
         public eventName: string,
-        public requestContract: SubContract,
-        public responseContract: ResponseContract,
+        public requestContract: NContract<Dto>,
+        public responseContract: ResponseContract<Dto>,
         public Response: any,
         public Body: any,
         public ErrorResponse: any,
@@ -188,12 +189,15 @@ export class Contract {
 }
 
 export class ContractService {
-    static async call(contract: Contract, data: any) {
+    static async call<Dto extends object>(contract: Contract<Dto>, data: any) {
         const payload = await contract.encodeRequest(data);
         const response = await RPC.call(contract.eventName, payload);
         return contract.decodeResponse(response);
     }
-    static handler(contract: Contract, contractHandler: (...a: any) => any) {
+    static handler<Dto extends object>(
+        contract: Contract<Dto>,
+        contractHandler: (...a: any) => any
+    ) {
         RPC.handler(contract.eventName, async function (data: any) {
             const payload = await contract.decodeRequest(data);
             try {
@@ -211,8 +215,8 @@ export class ContractService {
 }
 
 export class ContractServiceDecorator {
-    static handler(
-        contract: Contract
+    static handler<Dto extends object>(
+        contract: Contract<Dto>
     ): (
         target: any,
         propertyKey: string,

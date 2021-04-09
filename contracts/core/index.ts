@@ -96,7 +96,7 @@ export class ErrorResponseCodec implements FlatBufCodec<ErrRsDto> {
 
     decode(buf: flatbuffers.ByteBuffer) {
         const data = this.Response.getRoot(buf);
-        const body = data.body(this.ErrorResponse())!;
+        const body = data.body(new this.ErrorResponse())!;
         return {
             message: body.message()!,
         };

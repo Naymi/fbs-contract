@@ -1,15 +1,17 @@
 {
-  "name": "flatc_windows",
-  "version": "1.0.0",
-  "main": "index.js",
-  "license": "MIT",
-  "dependencies": {
-    "@types/flatbuffers": "^1.10.0",
-    "@types/node": "^14.14.37",
-    "class-transformer": "^0.4.0",
-    "class-transformer-validator": "^0.9.1",
-    "class-validator": "^0.13.1",
-    "flatbuffers": "^1.12.0",
-    "reflect-metadata": "^0.1.13"
-  }
+    "name": "flatc_windows",
+    "version": "1.0.0",
+    "main": "index.js",
+    "license": "MIT",
+    "dependencies": {
+        "@types/flatbuffers": "^1.10.0",
+        "@types/node": "^14.14.37",
+        "class-transformer": "^0.4.0",
+        "class-transformer-validator": "^0.9.1",
+        "class-validator": "^0.13.1",
+        "common": "file:D:\\projects\\project-x\\common",
+        "dotenv": "^8.2.0",
+        "flatbuffers": "^1.12.0",
+        "reflect-metadata": "^0.1.13"
+    }
 }

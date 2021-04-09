@@ -1,15 +1,19 @@
+import Transport from "common/lib/modules/Transport";
 export class RPC {
     static handlers: { name: string; handler: (...a: any[]) => any }[] = [];
     static handler(name: string, handler: (...a: any[]) => any) {
-        RPC.handlers.push({ name, handler });
+        Transport.subscribe(name, {
+            callback: async (err, msg) => {
+                if (err) {
+                    return;
+                }
+                const rsp = await handler(msg.data);
+                Transport.publish(msg.reply!, rsp);
+            },
+        });
     }
-    static async call(callName: string, data: any) {
-        const handler = RPC.handlers.find(
-            ({ name, handler }) => name === callName
-        );
-        if (!handler) {
-            throw new Error("не найден обработчик");
-        }
-        return handler.handler(data);
+    static async call(callName: string, data: any): Promise<any> {
+        const a = await Transport.request(callName, data);
+        return a.data;
     }
 }

@@ -16,6 +16,5 @@ export const playerHasStateContract = CommunicationContractCreator.create<
     successResponseContract,
     RPC.Response,
     RPC.Body,
-    RPC.ErrorResponse,
-    RPC.SuccessResponse
+    RPC.ErrorResponse
 );

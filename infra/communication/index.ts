@@ -12,8 +12,7 @@ export class CommunicationContractCreator {
         successResponseContract: Contract<RsDto>,
         Response: any,
         Body: any,
-        ErrorResponse: any,
-        SuccessResponse: any
+        ErrorResponse: any
     ) {
         return new CommunicationContract<RqDto, RsDto>(
             eventName,
@@ -25,9 +24,7 @@ export class CommunicationContractCreator {
                 Body
             ),
             Response,
-            Body,
-            ErrorResponse,
-            SuccessResponse
+            Body
         );
     }
 }
@@ -38,23 +35,21 @@ export class CommunicationContract<RqDto extends object, RsDto extends object> {
         public requestContract: Contract<RqDto>,
         public responseContract: ResponseContract<RsDto>,
         public Response: any,
-        public Body: any,
-        public ErrorResponse: any,
-        public SuccessResponse: any
+        public Body: any
     ) {}
 
-    encodeRequest(data: any) {
+    encodeRequest(data: RqDto): Promise<Uint8Array> {
         return this.requestContract.encode(data);
     }
 
-    decodeRequest(buf: Uint8Array) {
+    decodeRequest(buf: Uint8Array): Promise<RqDto> {
         return this.requestContract.decode(buf);
     }
 
-    encodeErrorResponse(data: any) {
+    encodeErrorResponse(data: ErrRsDto): Promise<Uint8Array> {
         return this.responseContract.error.encode(data);
     }
-    encodeSuccessResponse(data: any) {
+    encodeSuccessResponse(data: RsDto): Promise<Uint8Array> {
         return this.responseContract.success.encode(data);
     }
 
@@ -76,3 +71,10 @@ export class CommunicationContract<RqDto extends object, RsDto extends object> {
         return await this.decodeSuccessResponse(buf);
     }
 }
+
+export type CommunicationContractResponse<
+    C extends CommunicationContract<any, any>
+> = ReturnType<C["decodeResponse"]>;
+export type CommunicationContractRequest<
+    C extends CommunicationContract<any, any>
+> = Parameters<C["encodeRequest"]>[0];

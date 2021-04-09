@@ -8,10 +8,6 @@ enum PlayerState: ubyte (bit_flags) {
   Chained
 }
 
-table Player {
-  state: PlayerState;
-}
-
 table Request {
   state: PlayerState;
 }

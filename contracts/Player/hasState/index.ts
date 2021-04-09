@@ -1,3 +1,4 @@
+import { ClassType } from "class-transformer-validator";
 import { PlayerMethods } from "../playerMethods";
 import { ContractCreator } from "../../core";
 import { successResponseContract, PlayerResponseDto } from "./response";
@@ -9,7 +10,8 @@ import { RPC } from "./contract_generated";
 
 export const playerHasStateContract = ContractCreator.create<
     PlayerHasStateRequestDto,
-    PlayerResponseDto
+    PlayerResponseDto,
+    ClassType<RPC.Response>
 >(
     PlayerMethods.hasState,
     playerHasStateRequestContract,

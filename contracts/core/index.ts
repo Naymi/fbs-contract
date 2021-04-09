@@ -2,6 +2,55 @@ import { flatbuffers } from "flatbuffers";
 import { ClassType, transformAndValidate } from "class-transformer-validator";
 import { IsString } from "class-validator";
 import { RPC } from "../../rpc";
+import { RPC as FBRPC } from "../Player/hasState/core_generated";
+
+export interface FBSInstance {
+    getRoot(bb: flatbuffers.ByteBuffer, ...a: any[]): Response;
+    getSizePrefixedRoot(bb: flatbuffers.ByteBuffer, ...a: any[]): Response;
+    start(builder: flatbuffers.Builder): {};
+    end(builder: flatbuffers.Builder): flatbuffers.Offset;
+    create(builder: flatbuffers.Builder, ...a: any[]): flatbuffers.Offset;
+}
+
+interface FBSResponse<Body = any> extends FBSInstance {
+    bodyType(): number;
+    body(obj: Body): Body | null;
+    addBodyType(builder: flatbuffers.Builder, bodyType: number): {};
+    addBody(builder: flatbuffers.Builder, bodyOffset: flatbuffers.Offset): {};
+    end(builder: flatbuffers.Builder): flatbuffers.Offset;
+    create(
+        builder: flatbuffers.Builder,
+        bodyType: number,
+        bodyOffset: flatbuffers.Offset
+    ): flatbuffers.Offset;
+}
+
+export interface IErrorResponse {
+    __init(i: number, bb: flatbuffers.ByteBuffer): IErrorResponse;
+    getRoot(bb: flatbuffers.ByteBuffer, obj: IErrorResponse): IErrorResponse;
+    getSizePrefixedRoot(
+        bb: flatbuffers.ByteBuffer,
+        obj: IErrorResponse
+    ): IErrorResponse;
+    message(): string | null;
+    message(optionalEncoding: flatbuffers.Encoding): string | Uint8Array | null;
+    message(optionalEncoding: any): string | Uint8Array | null;
+    start(builder: flatbuffers.Builder): {};
+    addMessage(
+        builder: flatbuffers.Builder,
+        messageOffset: flatbuffers.Offset
+    ): {};
+    end(builder: flatbuffers.Builder): flatbuffers.Offset;
+    finishBuffer(builder: flatbuffers.Builder, offset: flatbuffers.Offset): {};
+    finishSizePrefixedBuffer(
+        builder: flatbuffers.Builder,
+        offset: flatbuffers.Offset
+    ): {};
+    create(
+        builder: flatbuffers.Builder,
+        messageOffset: flatbuffers.Offset
+    ): flatbuffers.Offset;
+}
 
 interface NewContract<D, R> {
     decode: (raw: R) => Promise<D>;
@@ -90,7 +139,7 @@ export class ResponseContract<
 export class ErrorResponseCodec implements FlatBufCodec<ErrRsDto> {
     constructor(
         private readonly Response: any,
-        private readonly ErrorResponse: any,
+        private readonly ErrorResponse: typeof FBRPC.ErrorResponse,
         private readonly Body: any
     ) {}
 
@@ -138,16 +187,20 @@ export class ResponseContractCreator {
 }
 
 export class ContractCreator {
-    static create<RqDto extends object, RsDto extends object>(
+    static create<
+        RqDto extends object,
+        RsDto extends object,
+        GResponse extends FBSInstance
+    >(
         eventName: string,
         requestContract: NContract<RqDto>,
         successResponseContract: NContract<RsDto>,
-        Response: any,
+        Response: GResponse,
         Body: any,
         ErrorResponse: any,
         SuccessResponse: any
     ) {
-        return new Contract<RqDto, RsDto>(
+        return new Contract<RqDto, RsDto, GResponse>(
             eventName,
             requestContract,
             ResponseContractCreator.create(
@@ -164,12 +217,16 @@ export class ContractCreator {
     }
 }
 
-export class Contract<RqDto extends object, RsDto extends object> {
+export class Contract<
+    RqDto extends object,
+    RsDto extends object,
+    GResponse extends ClassType<FBSResponse>
+> {
     constructor(
         public eventName: string,
         public requestContract: NContract<RqDto>,
         public responseContract: ResponseContract<RsDto>,
-        public Response: any,
+        public Response: GResponse,
         public Body: any,
         public ErrorResponse: any,
         public SuccessResponse: any

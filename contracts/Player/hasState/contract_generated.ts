@@ -3,427 +3,512 @@
 /**
  * @enum {number}
  */
-export namespace RPC{
-export enum PlayerState{
-  Knocked= 1,
-  Handcuffed= 2,
-  Escort= 4,
-  Chained= 8
-}};
+export namespace RPC {
+    export enum PlayerState {
+        Knocked = 1,
+        Handcuffed = 2,
+        Escort = 4,
+        Chained = 8,
+    }
+}
 
 /**
  * @enum {number}
  */
-export namespace RPC{
-export enum Body{
-  NONE= 0,
-  SuccessResponse= 1,
-  ErrorResponse= 2
-}};
+export namespace RPC {
+    export enum Body {
+        NONE = 0,
+        SuccessResponse = 1,
+        ErrorResponse = 2,
+    }
+}
 
 /**
  * @constructor
  */
-export namespace RPC{
-export class ErrorResponse {
-  bb: flatbuffers.ByteBuffer|null = null;
+export namespace RPC {
+    export class ErrorResponse {
+        bb: flatbuffers.ByteBuffer | null = null;
 
-  bb_pos:number = 0;
-/**
- * @param number i
- * @param flatbuffers.ByteBuffer bb
- * @returns ErrorResponse
- */
-__init(i:number, bb:flatbuffers.ByteBuffer):ErrorResponse {
-  this.bb_pos = i;
-  this.bb = bb;
-  return this;
-};
+        bb_pos: number = 0;
+        /**
+         * @param number i
+         * @param flatbuffers.ByteBuffer bb
+         * @returns ErrorResponse
+         */
+        __init(i: number, bb: flatbuffers.ByteBuffer): ErrorResponse {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
 
-/**
- * @param flatbuffers.ByteBuffer bb
- * @param ErrorResponse= obj
- * @returns ErrorResponse
- */
-static getRoot(bb:flatbuffers.ByteBuffer, obj?:ErrorResponse):ErrorResponse {
-  return (obj || new ErrorResponse()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-};
+        /**
+         * @param flatbuffers.ByteBuffer bb
+         * @param ErrorResponse= obj
+         * @returns ErrorResponse
+         */
+        static getRoot(
+            bb: flatbuffers.ByteBuffer,
+            obj?: ErrorResponse
+        ): ErrorResponse {
+            return (obj || new ErrorResponse()).__init(
+                bb.readInt32(bb.position()) + bb.position(),
+                bb
+            );
+        }
 
-/**
- * @param flatbuffers.ByteBuffer bb
- * @param ErrorResponse= obj
- * @returns ErrorResponse
- */
-static getSizePrefixedRoot(bb:flatbuffers.ByteBuffer, obj?:ErrorResponse):ErrorResponse {
-  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
-  return (obj || new ErrorResponse()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-};
+        /**
+         * @param flatbuffers.ByteBuffer bb
+         * @param ErrorResponse= obj
+         * @returns ErrorResponse
+         */
+        static getSizePrefixedRoot(
+            bb: flatbuffers.ByteBuffer,
+            obj?: ErrorResponse
+        ): ErrorResponse {
+            bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+            return (obj || new ErrorResponse()).__init(
+                bb.readInt32(bb.position()) + bb.position(),
+                bb
+            );
+        }
 
-/**
- * @param flatbuffers.Encoding= optionalEncoding
- * @returns string|Uint8Array|null
- */
-message():string|null
-message(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
-message(optionalEncoding?:any):string|Uint8Array|null {
-  var offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
-};
+        /**
+         * @param flatbuffers.Encoding= optionalEncoding
+         * @returns string|Uint8Array|null
+         */
+        message(): string | null;
+        message(
+            optionalEncoding: flatbuffers.Encoding
+        ): string | Uint8Array | null;
+        message(optionalEncoding?: any): string | Uint8Array | null {
+            var offset = this.bb!.__offset(this.bb_pos, 4);
+            return offset
+                ? this.bb!.__string(this.bb_pos + offset, optionalEncoding)
+                : null;
+        }
 
-/**
- * @param flatbuffers.Builder builder
- */
-static start(builder:flatbuffers.Builder) {
-  builder.startObject(1);
-};
+        /**
+         * @param flatbuffers.Builder builder
+         */
+        static start(builder: flatbuffers.Builder) {
+            builder.startObject(1);
+        }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset messageOffset
- */
-static addMessage(builder:flatbuffers.Builder, messageOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(0, messageOffset, 0);
-};
+        /**
+         * @param flatbuffers.Builder builder
+         * @param flatbuffers.Offset messageOffset
+         */
+        static addMessage(
+            builder: flatbuffers.Builder,
+            messageOffset: flatbuffers.Offset
+        ) {
+            builder.addFieldOffset(0, messageOffset, 0);
+        }
 
-/**
- * @param flatbuffers.Builder builder
- * @returns flatbuffers.Offset
- */
-static end(builder:flatbuffers.Builder):flatbuffers.Offset {
-  var offset = builder.endObject();
-  return offset;
-};
+        /**
+         * @param flatbuffers.Builder builder
+         * @returns flatbuffers.Offset
+         */
+        static end(builder: flatbuffers.Builder): flatbuffers.Offset {
+            var offset = builder.endObject();
+            return offset;
+        }
 
-static create(builder:flatbuffers.Builder, messageOffset:flatbuffers.Offset):flatbuffers.Offset {
-  ErrorResponse.start(builder);
-  ErrorResponse.addMessage(builder, messageOffset);
-  return ErrorResponse.end(builder);
-}
-}
-}
-/**
- * @constructor
- */
-export namespace RPC{
-export class Player {
-  bb: flatbuffers.ByteBuffer|null = null;
-
-  bb_pos:number = 0;
-/**
- * @param number i
- * @param flatbuffers.ByteBuffer bb
- * @returns Player
- */
-__init(i:number, bb:flatbuffers.ByteBuffer):Player {
-  this.bb_pos = i;
-  this.bb = bb;
-  return this;
-};
-
-/**
- * @param flatbuffers.ByteBuffer bb
- * @param Player= obj
- * @returns Player
- */
-static getRoot(bb:flatbuffers.ByteBuffer, obj?:Player):Player {
-  return (obj || new Player()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-};
-
-/**
- * @param flatbuffers.ByteBuffer bb
- * @param Player= obj
- * @returns Player
- */
-static getSizePrefixedRoot(bb:flatbuffers.ByteBuffer, obj?:Player):Player {
-  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
-  return (obj || new Player()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-};
-
-/**
- * @returns RPC.PlayerState
- */
-state():RPC.PlayerState {
-  var offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? /**  */ (this.bb!.readUint8(this.bb_pos + offset)) : /** } */ (0);
-};
-
-/**
- * @param flatbuffers.Builder builder
- */
-static start(builder:flatbuffers.Builder) {
-  builder.startObject(1);
-};
-
-/**
- * @param flatbuffers.Builder builder
- * @param RPC.PlayerState state
- */
-static addState(builder:flatbuffers.Builder, state:RPC.PlayerState) {
-  builder.addFieldInt8(0, state, /** } */ (0));
-};
-
-/**
- * @param flatbuffers.Builder builder
- * @returns flatbuffers.Offset
- */
-static end(builder:flatbuffers.Builder):flatbuffers.Offset {
-  var offset = builder.endObject();
-  return offset;
-};
-
-static create(builder:flatbuffers.Builder, state:RPC.PlayerState):flatbuffers.Offset {
-  Player.start(builder);
-  Player.addState(builder, state);
-  return Player.end(builder);
-}
-}
+        static create(
+            builder: flatbuffers.Builder,
+            messageOffset: flatbuffers.Offset
+        ): flatbuffers.Offset {
+            ErrorResponse.start(builder);
+            ErrorResponse.addMessage(builder, messageOffset);
+            return ErrorResponse.end(builder);
+        }
+    }
 }
 /**
  * @constructor
  */
-export namespace RPC{
-export class Request {
-  bb: flatbuffers.ByteBuffer|null = null;
+export namespace RPC {
+    export class Player {
+        bb: flatbuffers.ByteBuffer | null = null;
 
-  bb_pos:number = 0;
-/**
- * @param number i
- * @param flatbuffers.ByteBuffer bb
- * @returns Request
- */
-__init(i:number, bb:flatbuffers.ByteBuffer):Request {
-  this.bb_pos = i;
-  this.bb = bb;
-  return this;
-};
+        bb_pos: number = 0;
+        /**
+         * @param number i
+         * @param flatbuffers.ByteBuffer bb
+         * @returns Player
+         */
+        __init(i: number, bb: flatbuffers.ByteBuffer): Player {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
 
-/**
- * @param flatbuffers.ByteBuffer bb
- * @param Request= obj
- * @returns Request
- */
-static getRoot(bb:flatbuffers.ByteBuffer, obj?:Request):Request {
-  return (obj || new Request()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-};
+        /**
+         * @param flatbuffers.ByteBuffer bb
+         * @param Player= obj
+         * @returns Player
+         */
+        static getRoot(bb: flatbuffers.ByteBuffer, obj?: Player): Player {
+            return (obj || new Player()).__init(
+                bb.readInt32(bb.position()) + bb.position(),
+                bb
+            );
+        }
 
-/**
- * @param flatbuffers.ByteBuffer bb
- * @param Request= obj
- * @returns Request
- */
-static getSizePrefixedRoot(bb:flatbuffers.ByteBuffer, obj?:Request):Request {
-  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
-  return (obj || new Request()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-};
+        /**
+         * @param flatbuffers.ByteBuffer bb
+         * @param Player= obj
+         * @returns Player
+         */
+        static getSizePrefixedRoot(
+            bb: flatbuffers.ByteBuffer,
+            obj?: Player
+        ): Player {
+            bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+            return (obj || new Player()).__init(
+                bb.readInt32(bb.position()) + bb.position(),
+                bb
+            );
+        }
 
-/**
- * @returns RPC.PlayerState
- */
-state():RPC.PlayerState {
-  var offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? /**  */ (this.bb!.readUint8(this.bb_pos + offset)) : /** } */ (0);
-};
+        /**
+         * @returns RPC.PlayerState
+         */
+        state(): RPC.PlayerState {
+            var offset = this.bb!.__offset(this.bb_pos, 4);
+            return offset
+                ? /**  */ this.bb!.readUint8(this.bb_pos + offset)
+                : /** } */ 0;
+        }
 
-/**
- * @param flatbuffers.Builder builder
- */
-static start(builder:flatbuffers.Builder) {
-  builder.startObject(1);
-};
+        /**
+         * @param flatbuffers.Builder builder
+         */
+        static start(builder: flatbuffers.Builder) {
+            builder.startObject(1);
+        }
 
-/**
- * @param flatbuffers.Builder builder
- * @param RPC.PlayerState state
- */
-static addState(builder:flatbuffers.Builder, state:RPC.PlayerState) {
-  builder.addFieldInt8(0, state, /** } */ (0));
-};
+        /**
+         * @param flatbuffers.Builder builder
+         * @param RPC.PlayerState state
+         */
+        static addState(builder: flatbuffers.Builder, state: RPC.PlayerState) {
+            builder.addFieldInt8(0, state, /** } */ 0);
+        }
 
-/**
- * @param flatbuffers.Builder builder
- * @returns flatbuffers.Offset
- */
-static end(builder:flatbuffers.Builder):flatbuffers.Offset {
-  var offset = builder.endObject();
-  return offset;
-};
+        /**
+         * @param flatbuffers.Builder builder
+         * @returns flatbuffers.Offset
+         */
+        static end(builder: flatbuffers.Builder): flatbuffers.Offset {
+            var offset = builder.endObject();
+            return offset;
+        }
 
-static create(builder:flatbuffers.Builder, state:RPC.PlayerState):flatbuffers.Offset {
-  Request.start(builder);
-  Request.addState(builder, state);
-  return Request.end(builder);
-}
-}
-}
-/**
- * @constructor
- */
-export namespace RPC{
-export class SuccessResponse {
-  bb: flatbuffers.ByteBuffer|null = null;
-
-  bb_pos:number = 0;
-/**
- * @param number i
- * @param flatbuffers.ByteBuffer bb
- * @returns SuccessResponse
- */
-__init(i:number, bb:flatbuffers.ByteBuffer):SuccessResponse {
-  this.bb_pos = i;
-  this.bb = bb;
-  return this;
-};
-
-/**
- * @param flatbuffers.ByteBuffer bb
- * @param SuccessResponse= obj
- * @returns SuccessResponse
- */
-static getRoot(bb:flatbuffers.ByteBuffer, obj?:SuccessResponse):SuccessResponse {
-  return (obj || new SuccessResponse()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-};
-
-/**
- * @param flatbuffers.ByteBuffer bb
- * @param SuccessResponse= obj
- * @returns SuccessResponse
- */
-static getSizePrefixedRoot(bb:flatbuffers.ByteBuffer, obj?:SuccessResponse):SuccessResponse {
-  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
-  return (obj || new SuccessResponse()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-};
-
-/**
- * @returns boolean
- */
-result():boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? !!this.bb!.readInt8(this.bb_pos + offset) : false;
-};
-
-/**
- * @param flatbuffers.Builder builder
- */
-static start(builder:flatbuffers.Builder) {
-  builder.startObject(1);
-};
-
-/**
- * @param flatbuffers.Builder builder
- * @param boolean result
- */
-static addResult(builder:flatbuffers.Builder, result:boolean) {
-  builder.addFieldInt8(0, +result, +false);
-};
-
-/**
- * @param flatbuffers.Builder builder
- * @returns flatbuffers.Offset
- */
-static end(builder:flatbuffers.Builder):flatbuffers.Offset {
-  var offset = builder.endObject();
-  return offset;
-};
-
-static create(builder:flatbuffers.Builder, result:boolean):flatbuffers.Offset {
-  SuccessResponse.start(builder);
-  SuccessResponse.addResult(builder, result);
-  return SuccessResponse.end(builder);
-}
-}
+        static create(
+            builder: flatbuffers.Builder,
+            state: RPC.PlayerState
+        ): flatbuffers.Offset {
+            Player.start(builder);
+            Player.addState(builder, state);
+            return Player.end(builder);
+        }
+    }
 }
 /**
  * @constructor
  */
-export namespace RPC{
-export class Response {
-  bb: flatbuffers.ByteBuffer|null = null;
+export namespace RPC {
+    export class Request {
+        bb: flatbuffers.ByteBuffer | null = null;
 
-  bb_pos:number = 0;
-/**
- * @param number i
- * @param flatbuffers.ByteBuffer bb
- * @returns Response
- */
-__init(i:number, bb:flatbuffers.ByteBuffer):Response {
-  this.bb_pos = i;
-  this.bb = bb;
-  return this;
-};
+        bb_pos: number = 0;
+        /**
+         * @param number i
+         * @param flatbuffers.ByteBuffer bb
+         * @returns Request
+         */
+        __init(i: number, bb: flatbuffers.ByteBuffer): Request {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
 
-/**
- * @param flatbuffers.ByteBuffer bb
- * @param Response= obj
- * @returns Response
- */
-static getRoot(bb:flatbuffers.ByteBuffer, obj?:Response):Response {
-  return (obj || new Response()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-};
+        /**
+         * @param flatbuffers.ByteBuffer bb
+         * @param Request= obj
+         * @returns Request
+         */
+        static getRoot(bb: flatbuffers.ByteBuffer, obj?: Request): Request {
+            return (obj || new Request()).__init(
+                bb.readInt32(bb.position()) + bb.position(),
+                bb
+            );
+        }
 
-/**
- * @param flatbuffers.ByteBuffer bb
- * @param Response= obj
- * @returns Response
- */
-static getSizePrefixedRoot(bb:flatbuffers.ByteBuffer, obj?:Response):Response {
-  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
-  return (obj || new Response()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-};
+        /**
+         * @param flatbuffers.ByteBuffer bb
+         * @param Request= obj
+         * @returns Request
+         */
+        static getSizePrefixedRoot(
+            bb: flatbuffers.ByteBuffer,
+            obj?: Request
+        ): Request {
+            bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+            return (obj || new Request()).__init(
+                bb.readInt32(bb.position()) + bb.position(),
+                bb
+            );
+        }
 
-/**
- * @returns RPC.Body
- */
-bodyType():RPC.Body {
-  var offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? /**  */ (this.bb!.readUint8(this.bb_pos + offset)) : RPC.Body.NONE;
-};
+        /**
+         * @returns RPC.PlayerState
+         */
+        state(): RPC.PlayerState {
+            var offset = this.bb!.__offset(this.bb_pos, 4);
+            return offset
+                ? /**  */ this.bb!.readUint8(this.bb_pos + offset)
+                : /** } */ 0;
+        }
 
-/**
- * @param flatbuffers.Table obj
- * @returns ?flatbuffers.Table
- */
-body<T extends flatbuffers.Table>(obj:T):T|null {
-  var offset = this.bb!.__offset(this.bb_pos, 6);
-  return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
-};
+        /**
+         * @param flatbuffers.Builder builder
+         */
+        static start(builder: flatbuffers.Builder) {
+            builder.startObject(1);
+        }
 
-/**
- * @param flatbuffers.Builder builder
- */
-static start(builder:flatbuffers.Builder) {
-  builder.startObject(2);
-};
+        /**
+         * @param flatbuffers.Builder builder
+         * @param RPC.PlayerState state
+         */
+        static addState(builder: flatbuffers.Builder, state: RPC.PlayerState) {
+            builder.addFieldInt8(0, state, /** } */ 0);
+        }
 
-/**
- * @param flatbuffers.Builder builder
- * @param RPC.Body bodyType
- */
-static addBodyType(builder:flatbuffers.Builder, bodyType:RPC.Body) {
-  builder.addFieldInt8(0, bodyType, RPC.Body.NONE);
-};
+        /**
+         * @param flatbuffers.Builder builder
+         * @returns flatbuffers.Offset
+         */
+        static end(builder: flatbuffers.Builder): flatbuffers.Offset {
+            var offset = builder.endObject();
+            return offset;
+        }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset bodyOffset
- */
-static addBody(builder:flatbuffers.Builder, bodyOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(1, bodyOffset, 0);
-};
-
-/**
- * @param flatbuffers.Builder builder
- * @returns flatbuffers.Offset
- */
-static end(builder:flatbuffers.Builder):flatbuffers.Offset {
-  var offset = builder.endObject();
-  return offset;
-};
-
-static create(builder:flatbuffers.Builder, bodyType:RPC.Body, bodyOffset:flatbuffers.Offset):flatbuffers.Offset {
-  Response.start(builder);
-  Response.addBodyType(builder, bodyType);
-  Response.addBody(builder, bodyOffset);
-  return Response.end(builder);
+        static create(
+            builder: flatbuffers.Builder,
+            state: RPC.PlayerState
+        ): flatbuffers.Offset {
+            Request.start(builder);
+            Request.addState(builder, state);
+            return Request.end(builder);
+        }
+    }
 }
+/**
+ * @constructor
+ */
+export namespace RPC {
+    export class SuccessResponse {
+        bb: flatbuffers.ByteBuffer | null = null;
+
+        bb_pos: number = 0;
+        /**
+         * @param number i
+         * @param flatbuffers.ByteBuffer bb
+         * @returns SuccessResponse
+         */
+        __init(i: number, bb: flatbuffers.ByteBuffer): SuccessResponse {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+
+        /**
+         * @param flatbuffers.ByteBuffer bb
+         * @param SuccessResponse= obj
+         * @returns SuccessResponse
+         */
+        static getRoot(
+            bb: flatbuffers.ByteBuffer,
+            obj?: SuccessResponse
+        ): SuccessResponse {
+            return (obj || new SuccessResponse()).__init(
+                bb.readInt32(bb.position()) + bb.position(),
+                bb
+            );
+        }
+
+        /**
+         * @param flatbuffers.ByteBuffer bb
+         * @param SuccessResponse= obj
+         * @returns SuccessResponse
+         */
+        static getSizePrefixedRoot(
+            bb: flatbuffers.ByteBuffer,
+            obj?: SuccessResponse
+        ): SuccessResponse {
+            bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+            return (obj || new SuccessResponse()).__init(
+                bb.readInt32(bb.position()) + bb.position(),
+                bb
+            );
+        }
+
+        /**
+         * @returns boolean
+         */
+        result(): boolean {
+            var offset = this.bb!.__offset(this.bb_pos, 4);
+            return offset ? !!this.bb!.readInt8(this.bb_pos + offset) : false;
+        }
+
+        /**
+         * @param flatbuffers.Builder builder
+         */
+        static start(builder: flatbuffers.Builder) {
+            builder.startObject(1);
+        }
+
+        /**
+         * @param flatbuffers.Builder builder
+         * @param boolean result
+         */
+        static addResult(builder: flatbuffers.Builder, result: boolean) {
+            builder.addFieldInt8(0, +result, +false);
+        }
+
+        /**
+         * @param flatbuffers.Builder builder
+         * @returns flatbuffers.Offset
+         */
+        static end(builder: flatbuffers.Builder): flatbuffers.Offset {
+            var offset = builder.endObject();
+            return offset;
+        }
+
+        static create(
+            builder: flatbuffers.Builder,
+            result: boolean
+        ): flatbuffers.Offset {
+            SuccessResponse.start(builder);
+            SuccessResponse.addResult(builder, result);
+            return SuccessResponse.end(builder);
+        }
+    }
 }
+/**
+ * @constructor
+ */
+export namespace RPC {
+    export class Response {
+        bb: flatbuffers.ByteBuffer | null = null;
+
+        bb_pos: number = 0;
+        /**
+         * @param number i
+         * @param flatbuffers.ByteBuffer bb
+         * @returns Response
+         */
+        __init(i: number, bb: flatbuffers.ByteBuffer): Response {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+
+        /**
+         * @param flatbuffers.ByteBuffer bb
+         * @param Response= obj
+         * @returns Response
+         */
+        static getRoot(bb: flatbuffers.ByteBuffer, obj?: Response): Response {
+            return (obj || new Response()).__init(
+                bb.readInt32(bb.position()) + bb.position(),
+                bb
+            );
+        }
+
+        /**
+         * @param flatbuffers.ByteBuffer bb
+         * @param Response= obj
+         * @returns Response
+         */
+        static getSizePrefixedRoot(
+            bb: flatbuffers.ByteBuffer,
+            obj?: Response
+        ): Response {
+            bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+            return (obj || new Response()).__init(
+                bb.readInt32(bb.position()) + bb.position(),
+                bb
+            );
+        }
+
+        /**
+         * @returns RPC.Body
+         */
+        bodyType(): RPC.Body {
+            var offset = this.bb!.__offset(this.bb_pos, 4);
+            return offset
+                ? /**  */ this.bb!.readUint8(this.bb_pos + offset)
+                : RPC.Body.NONE;
+        }
+
+        /**
+         * @param flatbuffers.Table obj
+         * @returns ?flatbuffers.Table
+         */
+        body<T extends flatbuffers.Table>(obj: T): T | null {
+            var offset = this.bb!.__offset(this.bb_pos, 6);
+            return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
+        }
+
+        /**
+         * @param flatbuffers.Builder builder
+         */
+        static start(builder: flatbuffers.Builder) {
+            builder.startObject(2);
+        }
+
+        /**
+         * @param flatbuffers.Builder builder
+         * @param RPC.Body bodyType
+         */
+        static addBodyType(builder: flatbuffers.Builder, bodyType: RPC.Body) {
+            builder.addFieldInt8(0, bodyType, RPC.Body.NONE);
+        }
+
+        /**
+         * @param flatbuffers.Builder builder
+         * @param flatbuffers.Offset bodyOffset
+         */
+        static addBody(
+            builder: flatbuffers.Builder,
+            bodyOffset: flatbuffers.Offset
+        ) {
+            builder.addFieldOffset(1, bodyOffset, 0);
+        }
+
+        /**
+         * @param flatbuffers.Builder builder
+         * @returns flatbuffers.Offset
+         */
+        static end(builder: flatbuffers.Builder): flatbuffers.Offset {
+            var offset = builder.endObject();
+            return offset;
+        }
+
+        static create(
+            builder: flatbuffers.Builder,
+            bodyType: RPC.Body,
+            bodyOffset: flatbuffers.Offset
+        ): flatbuffers.Offset {
+            Response.start(builder);
+            Response.addBodyType(builder, bodyType);
+            Response.addBody(builder, bodyOffset);
+            return Response.end(builder);
+        }
+    }
 }

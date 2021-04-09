@@ -105,6 +105,44 @@ export class ResponseContractCreator {
     }
 }
 
+export class RPCContractService {
+    constructor(private readonly driver: { call: any; handler: any }) {}
+    async call<RqDto extends object, RsDto extends object>(
+        contract: CommunicationContract<RqDto, RsDto>,
+        data: RqDto
+    ) {
+        const payload = await contract.encodeRequest(data);
+        const response = await this.driver.call(contract.eventName, payload);
+        return contract.decodeResponse(response);
+    }
+    handler<ResponseDto extends object, RqDto extends object>(
+        contract: CommunicationContract<ResponseDto, RqDto>,
+        contractHandler: (...a: any) => any
+    ) {
+        this.driver.handler(
+            contract.eventName,
+            async function (data: any): Promise<Uint8Array> {
+                const payload = await contract.decodeRequest(data);
+                try {
+                    const response = await contractHandler(
+                        payload,
+                        contractHandler
+                    );
+                    const successResponse = await contract.encodeSuccessResponse(
+                        response
+                    );
+                    return successResponse;
+                } catch (error) {
+                    const errorResponse = contract.encodeErrorResponse({
+                        message: error.toString(),
+                    });
+                    return errorResponse;
+                }
+            }
+        );
+    }
+}
+
 export class ContractService {
     static async call<RqDto extends object, RsDto extends object>(
         contract: CommunicationContract<RqDto, RsDto>,
@@ -118,19 +156,27 @@ export class ContractService {
         contract: CommunicationContract<ResponseDto, RqDto>,
         contractHandler: (...a: any) => any
     ) {
-        RPC.handler(contract.eventName, async function (data: any) {
-            const payload = await contract.decodeRequest(data);
-            try {
-                const response = await contractHandler(
-                    payload,
-                    contractHandler
-                );
-                const result = await contract.encodeSuccessResponse(response);
-                return result;
-            } catch (error) {
-                return contract.encodeErrorResponse({ message: error.message });
+        RPC.handler(
+            contract.eventName,
+            async function (data: any): Promise<Uint8Array> {
+                const payload = await contract.decodeRequest(data);
+                try {
+                    const response = await contractHandler(
+                        payload,
+                        contractHandler
+                    );
+                    const successResponse = await contract.encodeSuccessResponse(
+                        response
+                    );
+                    return successResponse;
+                } catch (error) {
+                    const errorResponse = contract.encodeErrorResponse({
+                        message: error.toString(),
+                    });
+                    return errorResponse;
+                }
             }
-        });
+        );
     }
 }
 

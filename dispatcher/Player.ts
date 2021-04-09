@@ -9,9 +9,10 @@ export class PlayerDispatcher {
     async hasState(
         payload: CommunicationContractRequest<typeof playerHasStateContract>
     ): Promise<CommunicationContractResponse<typeof playerHasStateContract>> {
-        if (0) {
+        if (1) {
             throw new Error("hasState error");
         }
-        return { result: true };
+        // @ts-ignore
+        return { result: "" };
     }
 }

@@ -87,8 +87,7 @@ export class ResponseContract<
     ) {}
 }
 
-export class ErrorResponseCodec<GResponse, GErrorResponse, GBody>
-    implements FlatBufCodec<ErrRsDto> {
+export class ErrorResponseCodec implements FlatBufCodec<ErrRsDto> {
     constructor(
         private readonly Response: any,
         private readonly ErrorResponse: any,
@@ -116,11 +115,7 @@ export class ErrorResponseCodec<GResponse, GErrorResponse, GBody>
 }
 
 export class ErrorResponseContractCreator {
-    static create<GResponse, GErrorResponse, GBody>(
-        response: GResponse,
-        errorResponse: GErrorResponse,
-        body: GBody
-    ) {
+    static create(response: any, errorResponse: any, body: any) {
         return NContractCreator.create(
             new ErrorResponseCodec(response, errorResponse, body),
             ErrRsDto
@@ -129,11 +124,11 @@ export class ErrorResponseContractCreator {
 }
 
 export class ResponseContractCreator {
-    static create<RsDto extends object, GResponse, GErrorResponse, GBody>(
+    static create<RsDto extends object>(
         successResponseContract: NContract<RsDto>,
-        response: GResponse,
-        errorResponse: GErrorResponse,
-        body: GBody
+        response: any,
+        errorResponse: any,
+        body: any
     ) {
         return new ResponseContract<RsDto>(
             successResponseContract,
@@ -143,31 +138,24 @@ export class ResponseContractCreator {
 }
 
 export class ContractCreator {
-    static create<
-        RqDto extends object,
-        RsDto extends object,
-        GResponse,
-        GBody,
-        GErrorResponse,
-        GSuccessResponse
-    >(
+    static create<RqDto extends object, RsDto extends object>(
         eventName: string,
         requestContract: NContract<RqDto>,
         successResponseContract: NContract<RsDto>,
-        Response: GResponse,
-        Body: GBody,
-        ErrorResponse: GErrorResponse,
-        SuccessResponse: GSuccessResponse
+        Response: any,
+        Body: any,
+        ErrorResponse: any,
+        SuccessResponse: any
     ) {
         return new Contract<RqDto, RsDto>(
             eventName,
             requestContract,
-            ResponseContractCreator.create<
-                RsDto,
-                GResponse,
-                GErrorResponse,
-                GBody
-            >(successResponseContract, Response, ErrorResponse, Body),
+            ResponseContractCreator.create(
+                successResponseContract,
+                Response,
+                ErrorResponse,
+                Body
+            ),
             Response,
             Body,
             ErrorResponse,

@@ -9,11 +9,7 @@ import { RPC } from "./contract_generated";
 
 export const playerHasStateContract = ContractCreator.create<
     PlayerHasStateRequestDto,
-    PlayerResponseDto,
-    typeof RPC.Response,
-    typeof RPC.Body,
-    typeof RPC.ErrorResponse,
-    typeof RPC.SuccessResponse
+    PlayerResponseDto
 >(
     PlayerMethods.hasState,
     playerHasStateRequestContract,

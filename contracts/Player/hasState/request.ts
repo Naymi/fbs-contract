@@ -1,5 +1,5 @@
 import { IsIn } from "class-validator";
-import { NContractCreator } from "../../core";
+import { FlatBufContractCreator } from "../../core";
 import { RPC as fb } from "./contract_generated";
 
 export class PlayerHasStateRequestDto {
@@ -7,7 +7,7 @@ export class PlayerHasStateRequestDto {
     state!: fb.PlayerState;
 }
 
-export const playerHasStateRequestContract = NContractCreator.create<PlayerHasStateRequestDto>(
+export const playerHasStateRequestContract = FlatBufContractCreator.create<PlayerHasStateRequestDto>(
     {
         decode(buf: flatbuffers.ByteBuffer) {
             const data = fb.Request.getRoot(buf);

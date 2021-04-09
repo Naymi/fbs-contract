@@ -1,52 +1,20 @@
+import {
+    FlatBufCodec,
+    CodecProtocol,
+    FlatBufCodecProtocol,
+} from "./../../infra/protocol/codec";
 import { flatbuffers } from "flatbuffers";
-import { ClassType, transformAndValidate } from "class-transformer-validator";
+import { ClassType } from "class-transformer-validator";
 import { IsString } from "class-validator";
 import { RPC } from "../../rpc";
+import { CommunicationContract } from "../../infra/communication";
+import { ValidationProtocol } from "../../infra/protocol/validation";
 
-interface NewContract<D, R> {
-    decode: (raw: R) => Promise<D>;
-    encode: (data: D) => Promise<R>;
-}
-
-interface IValidationContract<Dto> {
-    validate: (data: any) => Promise<Dto>;
-}
-
-interface FlatBufCodec<Dto extends object> {
-    decode: (buf: flatbuffers.ByteBuffer) => Dto;
-    encode: (builder: flatbuffers.Builder, data: Dto) => number;
-}
-
-export class TransportContract<Dto extends object>
-    implements NewContract<Dto, Uint8Array> {
-    constructor(private readonly codec: FlatBufCodec<Dto>) {}
-    async decode(buf: Uint8Array) {
-        const b = new flatbuffers.ByteBuffer(buf);
-        const data = this.codec.decode(b);
-        return data;
-    }
-
-    async encode(data: Dto): Promise<Uint8Array> {
-        const builder = new flatbuffers.Builder();
-        const offset = this.codec.encode(builder, data);
-        builder.finish(offset);
-        return builder.asUint8Array();
-    }
-}
-
-export class ValidationContract<Dto extends object>
-    implements IValidationContract<Dto> {
-    constructor(private readonly Dto: ClassType<Dto>) {}
-    async validate(data: any): Promise<Dto> {
-        return (await transformAndValidate(this.Dto, data)) as Dto;
-    }
-}
-
-export class NContract<Dto extends object>
-    implements NewContract<Dto, Uint8Array> {
+export class Contract<Dto extends object>
+    implements CodecProtocol<Dto, Uint8Array> {
     constructor(
-        private transportContract: TransportContract<Dto>,
-        private validationContract: ValidationContract<Dto>
+        readonly transportContract: FlatBufCodecProtocol<Dto>,
+        readonly validationContract: ValidationProtocol<Dto>
     ) {}
     decode: (raw: Uint8Array) => Promise<Dto> = async (raw) => {
         const data = this.transportContract.decode(raw);
@@ -60,14 +28,14 @@ export class NContract<Dto extends object>
     };
 }
 
-export class NContractCreator {
+export class FlatBufContractCreator {
     static create<Dto extends object>(
         codec: FlatBufCodec<Dto>,
         Dto: ClassType<Dto>
-    ) {
-        return new NContract(
-            new TransportContract(codec),
-            new ValidationContract(Dto)
+    ): Contract<Dto> {
+        return new Contract(
+            new FlatBufCodecProtocol(codec),
+            new ValidationProtocol(Dto)
         );
     }
 }
@@ -82,8 +50,8 @@ export class ResponseContract<
     ErRsDto extends object = ErrRsDto
 > {
     constructor(
-        public success: NContract<RqDto>,
-        public error: NContract<ErRsDto>
+        public success: Contract<RqDto>,
+        public error: Contract<ErRsDto>
     ) {}
 }
 
@@ -116,7 +84,7 @@ export class ErrorResponseCodec implements FlatBufCodec<ErrRsDto> {
 
 export class ErrorResponseContractCreator {
     static create(response: any, errorResponse: any, body: any) {
-        return NContractCreator.create(
+        return FlatBufContractCreator.create(
             new ErrorResponseCodec(response, errorResponse, body),
             ErrRsDto
         );
@@ -125,7 +93,7 @@ export class ErrorResponseContractCreator {
 
 export class ResponseContractCreator {
     static create<RsDto extends object>(
-        successResponseContract: NContract<RsDto>,
+        successResponseContract: Contract<RsDto>,
         response: any,
         errorResponse: any,
         body: any
@@ -137,81 +105,9 @@ export class ResponseContractCreator {
     }
 }
 
-export class ContractCreator {
-    static create<RqDto extends object, RsDto extends object>(
-        eventName: string,
-        requestContract: NContract<RqDto>,
-        successResponseContract: NContract<RsDto>,
-        Response: any,
-        Body: any,
-        ErrorResponse: any,
-        SuccessResponse: any
-    ) {
-        return new Contract<RqDto, RsDto>(
-            eventName,
-            requestContract,
-            ResponseContractCreator.create(
-                successResponseContract,
-                Response,
-                ErrorResponse,
-                Body
-            ),
-            Response,
-            Body,
-            ErrorResponse,
-            SuccessResponse
-        );
-    }
-}
-
-export class Contract<RqDto extends object, RsDto extends object> {
-    constructor(
-        public eventName: string,
-        public requestContract: NContract<RqDto>,
-        public responseContract: ResponseContract<RsDto>,
-        public Response: any,
-        public Body: any,
-        public ErrorResponse: any,
-        public SuccessResponse: any
-    ) {}
-
-    encodeRequest(data: any) {
-        return this.requestContract.encode(data);
-    }
-
-    decodeRequest(buf: Uint8Array) {
-        return this.requestContract.decode(buf);
-    }
-
-    encodeErrorResponse(data: any) {
-        return this.responseContract.error.encode(data);
-    }
-    encodeSuccessResponse(data: any) {
-        return this.responseContract.success.encode(data);
-    }
-
-    decodeErrorResponse(raw: Uint8Array): Promise<ErrRsDto> {
-        return this.responseContract.error.decode(raw);
-    }
-    async decodeSuccessResponse(raw: Uint8Array): Promise<RsDto> {
-        return await this.responseContract.success.decode(raw);
-    }
-
-    async decodeResponse(buf: Uint8Array): Promise<RsDto> {
-        const byteBuilder = new flatbuffers.ByteBuffer(buf);
-        const data = this.Response.getRoot(byteBuilder);
-        const bodyType = data.bodyType();
-        if (bodyType === this.Body.ErrorResponse) {
-            const errorBody = await this.decodeErrorResponse(buf);
-            throw new Error(errorBody.message);
-        }
-        return await this.decodeSuccessResponse(buf);
-    }
-}
-
 export class ContractService {
     static async call<RqDto extends object, RsDto extends object>(
-        contract: Contract<RqDto, RsDto>,
+        contract: CommunicationContract<RqDto, RsDto>,
         data: RqDto
     ) {
         const payload = await contract.encodeRequest(data);
@@ -219,7 +115,7 @@ export class ContractService {
         return contract.decodeResponse(response);
     }
     static handler<ResponseDto extends object, RqDto extends object>(
-        contract: Contract<ResponseDto, RqDto>,
+        contract: CommunicationContract<ResponseDto, RqDto>,
         contractHandler: (...a: any) => any
     ) {
         RPC.handler(contract.eventName, async function (data: any) {
@@ -240,7 +136,7 @@ export class ContractService {
 
 export class ContractServiceDecorator {
     static handler<RqDto extends object, RsDto extends object>(
-        contract: Contract<RsDto, RqDto>
+        contract: CommunicationContract<RsDto, RqDto>
     ): (
         target: any,
         propertyKey: string,

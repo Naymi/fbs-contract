@@ -1,13 +1,13 @@
 import { PlayerMethods } from "../playerMethods";
-import { ContractCreator } from "../../core";
 import { successResponseContract, PlayerResponseDto } from "./response";
 import {
     playerHasStateRequestContract,
     PlayerHasStateRequestDto,
 } from "./request";
 import { RPC } from "./contract_generated";
+import { CommunicationContractCreator } from "../../../infra/communication";
 
-export const playerHasStateContract = ContractCreator.create<
+export const playerHasStateContract = CommunicationContractCreator.create<
     PlayerHasStateRequestDto,
     PlayerResponseDto
 >(

@@ -7,8 +7,12 @@ import { PlayerController } from "./controllers/Player";
 import Transport from "common/lib/modules/Transport";
 
 const main = async () => {
-    const a = await PlayerController.hasState({ state: 1 });
-    console.log(a.result);
+    try {
+        const a = await PlayerController.hasState({ state: 1 });
+        console.log("success: ", a.result);
+    } catch (error) {
+        console.error("error: ", error);
+    }
     Transport.close();
 };
 

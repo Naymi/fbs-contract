@@ -1,5 +1,5 @@
 import { IsBoolean } from "class-validator";
-import { NContractCreator } from "../../core";
+import { FlatBufContractCreator } from "../../core";
 import { RPC as fb } from "./contract_generated";
 
 export class PlayerResponseDto {
@@ -7,7 +7,7 @@ export class PlayerResponseDto {
     result!: boolean;
 }
 
-export const successResponseContract = NContractCreator.create(
+export const successResponseContract = FlatBufContractCreator.create(
     {
         decode(buf) {
             const data = fb.Response.getRoot(buf);
